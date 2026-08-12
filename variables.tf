@@ -28,6 +28,18 @@ variable "azure_firewall_vnet_name" {
    type        = string
 }
 
+variable "azure_firewall_log_analytics_name" {
+   description = "Name of the Log Analytics Workspace assigned to the Azure Firewall"
+   default     = "test-az-fw-law"
+   type        = string
+}
+
+variable "azure_firewall_diagnostics_settings_name" {
+   description = "Name of the diagnostic settings assigned to the Azure Firewall"
+   default     = "test-az-fw-ds"
+   type        = string
+}
+
 variable "spoke_vnet_name" {
    description = "Name of the Spoke Vnet"
    default     = "test-spk-vnet"

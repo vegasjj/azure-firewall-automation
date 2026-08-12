@@ -34,11 +34,24 @@ resource "azurerm_public_ip" "az-fw-mngmt-pip" {
   resource_group_name     = azurerm_resource_group.rg.name
 }
 
+resource "azurerm_log_analytics_workspace" "az-fw-law" {
+  name                = var.azure_firewall_log_analytics_name
+  location            = azurerm_resource_group.rg.location
+  resource_group_name = azurerm_resource_group.rg.name
+  sku                 = "PerGB2018"
+  retention_in_days   = 30
+}
+
 resource "azurerm_firewall_policy" "az-fw-pc" {
   location                          = azurerm_resource_group.rg.location
   name                              = var.azure_firewall_policy_name
   resource_group_name               = azurerm_resource_group.rg.name
   sku                               = "Basic"
+
+  insights {
+    enabled = true
+    default_log_analytics_workspace_id = azurerm_log_analytics_workspace.az-fw-law.id
+  }
 }
 
 locals {
@@ -63,6 +76,21 @@ resource "azurerm_firewall" "az-fw" {
     name                 = "test-mngmt-pip"
     public_ip_address_id = azurerm_public_ip.az-fw-mngmt-pip.id
     subnet_id            = local.subnet_ids["AzureFirewallManagementSubnet"]
+  }
+}
+
+resource "azurerm_monitor_diagnostic_setting" "az-fw-ds" {
+  name                       = var.azure_firewall_diagnostics_settings_name
+  target_resource_id         = azurerm_firewall.az-fw.id
+  log_analytics_workspace_id = azurerm_log_analytics_workspace.az-fw-law.id
+  log_analytics_destination_type = "Dedicated"
+
+  enabled_log {
+    category_group = "allLogs"
+  }
+
+  enabled_metric {
+    category = "AllMetrics"
   }
 }
 
